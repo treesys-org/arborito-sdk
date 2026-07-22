@@ -1,0 +1,55 @@
+Third-party notices for the Arborito Python SDK (this directory)
+==========================================================
+
+The **arborito-sdk** package is licensed under GPL-3.0-or-later (see `LICENSE`).
+
+This library loads `.arborito` course archives and speaks the same logical API as
+the browser Arcade SDK (`window.arborito` in the main Arborito app). It does not
+bundle lesson content, emoji graphics, or the Arborito GUI.
+
+Trademarks and unofficial builds (project policy, not legal advice):
+https://github.com/treesys-org/arborito/blob/main/docs/forking-and-branding.md
+
+This NOTICE is provided for compliance/attribution and is informational; it is
+not legal advice.
+
+
+1) Runtime dependencies (installed with `pip install arborito-sdk`)
+---------------------------------------------------------------------
+
+websocket-client
+ SPDX-License-Identifier: Apache-2.0
+ Copyright (c) websocket-client contributors
+ Used for optional Nostr relay loads (`from_share_code`, `from_nostr`, `refresh`).
+ Full license text: https://github.com/websocket-client/websocket-client/blob/master/LICENSE
+
+
+2) Development / packaging only
+-------------------------------
+
+Build and test tools from `[project.optional-dependencies] dev` (pytest, build,
+twine, etc.) are not required at runtime and are subject to their own licenses
+when you install `.[dev]`.
+
+
+3) Course content and your apps
+-------------------------------
+
+Lesson trees loaded via this SDK may be authored by third parties and licensed
+separately (often CC BY-SA 4.0 when published from Arborito). **Your** Pygame, CLI,
+or bot that uses `arborito-sdk` is responsible for how you process personal data
+(GDPR) and for complying with the license of each course file you ship.
+
+EU Digital Services Act (DSA) operator strings and Impressum for the official
+Arborito web/desktop app live in the main `arborito` repository (`locales/*/legal.json`).
+
+
+4) Related repositories
+-----------------------
+
+| Repo | Role | Legal detail |
+|------|------|--------------|
+| arborito | Web/desktop app | `NOTICE`, `docs/DSA_COMPLIANCE.md`, `docs/forking-and-branding.md` |
+| arborito-games | Browser Arcade cartridges | `NOTICE` (Tailwind/Vite build tooling) |
+
+Full API contract: https://github.com/treesys-org/arborito/blob/main/docs/sdk-spec.md

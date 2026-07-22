@@ -1,0 +1,54 @@
+[build-system]
+requires = ["setuptools>=61", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "arborito-sdk"
+version = "0.2.2"
+description = "Python SDK for Arborito courses: load .arborito archives and Quiz V2 challenges. Not the browser Arcade SDK (window.arborito)."
+readme = "README.md"
+requires-python = ">=3.10"
+license = "GPL-3.0-or-later"
+authors = [{ name = "TreeSys", email = "support@treesys.org" }]
+keywords = ["arborito", "education", "quiz", "e-learning", "sdk"]
+classifiers = [
+ "Development Status :: 4 - Beta",
+ "Intended Audience :: Developers",
+ "Programming Language :: Python :: 3",
+ "Programming Language :: Python :: 3.10",
+ "Programming Language :: Python :: 3.11",
+ "Programming Language :: Python :: 3.12",
+ "Programming Language :: Python :: 3.13",
+ "Topic :: Education",
+ "Topic :: Software Development :: Libraries :: Python Modules",
+]
+dependencies = ["websocket-client>=1.7.0", "click>=8.1.0"]
+
+[project.optional-dependencies]
+nostr = ["cryptography>=42.0.0"]
+tui = ["textual>=0.47.0"]
+dev = ["build>=1.0", "pytest>=7.0", "twine>=4.0", "textual>=0.47.0", "cryptography>=42.0.0"]
+
+[project.scripts]
+arborito-cli = "arborito_sdk.cli:main"
+
+[project.urls]
+Homepage = "https://github.com/treesys-org/arborito-sdk"
+Repository = "https://github.com/treesys-org/arborito-sdk"
+Documentation = "https://github.com/treesys-org/arborito/blob/main/docs/sdk-spec.md"
+Changelog = "https://github.com/treesys-org/arborito-sdk/blob/main/CHANGELOG.md"
+"Bug Tracker" = "https://github.com/treesys-org/arborito-sdk/issues"
+
+[tool.setuptools.package-data]
+arborito_sdk = ["data/nostr_spec.json"]
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["arborito_sdk*"]
+
+[tool.setuptools]
+license-files = ["LICENSE", "NOTICE"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["tests"]

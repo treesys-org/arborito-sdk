@@ -1,0 +1,56 @@
+# Runs on every push and on demand (Actions → SDK Quality → Run workflow).
+# Builds the wheel/sdist and runs smoke tests — no PyPI secrets needed.
+name: SDK Quality
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main, master]
+  pull_request:
+    branches: [main, master]
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: ["3.10", "3.11", "3.12"]
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - name: Install build tools
+        run: python -m pip install --upgrade pip build pytest
+
+      - name: Build sdist and wheel
+        run: python -m build
+
+      - name: Upload wheel artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: arborito-sdk-wheel-py${{ matrix.python-version }}
+          path: dist/*
+          if-no-files-found: error
+
+      - name: Install built package
+        run: |
+          WHEEL=$(ls dist/*.whl | head -1)
+          # [dev] pulls cryptography (escrow / NIP-44 tests) + pytest tooling
+          pip install "${WHEEL}[dev]"
+
+      - name: Verify Nostr dependency
+        run: python -c "from arborito_sdk.nostr_client import require_websocket_client; require_websocket_client(); print('websocket-client ok')"
+
+      - name: CLI smoke
+        run: |
+          arborito-cli --help
+          python -m arborito_sdk --help
+
+      - name: Import smoke
+        run: python -c "from arborito_sdk import Arborito; print('ok', Arborito)"
+
+      - name: Tests
+        run: python -m pytest -q

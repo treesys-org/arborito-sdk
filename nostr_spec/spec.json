@@ -1,0 +1,63 @@
+{
+  "version": 1,
+  "app": "arborito",
+  "description": "Canonical Arborito Nostr kinds and d-tags (shared by arborito app and arborito-sdk).",
+  "kinds": {
+    "KIND_TREE_DIRECTORY": 30100,
+    "KIND_DIRECTORY_BUMP": 30101,
+    "KIND_DIRECTORY_INDEX_SNAPSHOT": 30102,
+    "KIND_APP_SIGNED_PAYLOAD": 30103,
+    "KIND_BUNDLE_HEADER": 30150,
+    "KIND_BUNDLE_CHUNK_JSON": 30151,
+    "KIND_UNIVERSE_REVOKE": 30160,
+    "KIND_TREE_CODE": 30170,
+    "KIND_USER_ACCOUNT_RECORD": 30241,
+    "KIND_FORUM_BUCKET": 30263,
+    "KIND_PRESENCE_PING": 30280,
+    "KIND_USER_PROGRESS": 30290,
+    "KIND_USER_SOURCES": 30291,
+    "KIND_PRIVATE_TREE_BLOB": 30292,
+    "KIND_ACCOUNT_USER_PAIR_ESCROW": 30293,
+    "KIND_TREE_LEADERBOARD": 30294,
+    "KIND_ACCOUNT_RECOVERY": 30295
+  },
+  "limits": {
+    "NOSTR_CHUNK_CONTENT_MAX": 14000,
+    "PRIVATE_TREE_NIP44_PLAINTEXT_MAX": 10000
+  },
+  "tags": {
+    "TAG_APP": "app",
+    "TAG_APP_VALUE": "arborito",
+    "TAG_ARB_ROOT": "arb"
+  },
+  "credentials": {
+    "CREDENTIAL_KIND_SYNC_CODE": "sync_code",
+    "CREDENTIAL_KIND_PASSWORD": "password"
+  },
+  "share_code": {
+    "CODE_ALPHABET": "23456789ABCDEFGHJKLMNPQRSTUVWXYZ"
+  },
+  "d_tags": {
+    "bundleHeaderDTag": "arborito:bundle:hdr:{ownerPubHex}:{universeId}",
+    "bundleMainChunkDTag": "arborito:bundle:main:{ownerPubHex}:{universeId}:{index}",
+    "directoryDTag": "arborito:dir:v2:{ownerPubHex}:{universeId}",
+    "revokeDTag": "arborito:revoke:{ownerPubHex}:{universeId}",
+    "treeCodeDTag": "arborito:code:{normalizedCode}",
+    "accountEscrowDTag": "arborito:account:escrow:{username}",
+    "accountSyncLoginDTag": "arborito:account:sync-login:{username}",
+    "accountIdentityDTag": "arborito:account:identity:{username}",
+    "accountNetworkPubDTag": "arborito:account:network-pub:{username}",
+    "accountRecoveryDTag": "arborito:account:recovery:{username}",
+    "userSourcesDTag": "arborito:user:sources:{username}",
+    "privateTreeDTag": "arborito:user:privtree:{username}:{treeId}",
+    "privateTreePartDTag": "arborito:user:privtree:{username}:{treeId}:p:{partIndex}",
+    "treeLeaderboardDTag": "arborito:leaderboard:{userPubHex}:{weekKey}",
+    "lessonChunkDTag": "arborito:lesson:{pub}:{universeId}:{contentKey}",
+    "searchPackDTag": "arborito:search:{pub}:{universeId}:v1",
+    "searchPackChunkDTag": "arborito:search:{pub}:{universeId}:v1:c:{index}",
+    "forumPackDTag": "arborito:forum:{pub}:{universeId}:v1",
+    "forumPackChunkDTag": "arborito:forum:{pub}:{universeId}:v1:c:{index}",
+    "userSourcesPartDTag": "arborito:user:sources:{username}:p:{partIndex}",
+    "directoryIndexChunkDTag": "arborito:diridx:{slot}:v1:c:{index}"
+}
+}
