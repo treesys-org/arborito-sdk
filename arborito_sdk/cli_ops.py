@@ -210,6 +210,42 @@ def run_search(
     emit_footer(sess)
 
 
+def run_search_courses(
+    sess: CliSession,
+    query: str,
+    *,
+    relays: list[str] | None = None,
+    limit: int = 30,
+    as_json: bool = False,
+) -> None:
+    """Search the public Arborito course directory (Nostr), applying the maintainer blocklist."""
+    from .directory_search import search_public_courses
+    from .nostr_client import NostrClient
+    from .nostr_relays import default_nostr_relays
+
+    q = str(query or "").strip()
+    if not q:
+        raise click.ClickException("Query required.")
+    urls = list(relays) if relays else (sess.get_relays() or default_nostr_relays())
+    client = NostrClient(urls)
+    rows = search_public_courses(client, q, limit=limit)
+    if as_json:
+        click.echo(json.dumps(rows, ensure_ascii=False))
+        return
+    if not rows:
+        click.echo("No courses found.")
+        return
+    for r in rows:
+        code = str(r.get("shareCode") or "").strip()
+        code_bit = f"  [{code}]" if code else ""
+        author = str(r.get("authorName") or "").strip()
+        author_bit = f" — {author}" if author else ""
+        click.echo(f"{r.get('title')}{code_bit}{author_bit}")
+        if code:
+            click.echo(f"    branch add {code}")
+    emit_footer(sess)
+
+
 def run_lesson_list(sess: CliSession, api: Arborito, *, as_json: bool = False) -> None:
     items = api.lesson.list()
     if as_json:

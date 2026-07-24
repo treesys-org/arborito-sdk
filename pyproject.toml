@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "arborito-sdk"
-version = "0.2.2"
+version = "0.2.3"
 description = "Python SDK for Arborito courses: load .arborito archives and Quiz V2 challenges. Not the browser Arcade SDK (window.arborito)."
 readme = "README.md"
 requires-python = ">=3.10"
@@ -40,7 +40,7 @@ Changelog = "https://github.com/treesys-org/arborito-sdk/blob/main/CHANGELOG.md"
 "Bug Tracker" = "https://github.com/treesys-org/arborito-sdk/issues"
 
 [tool.setuptools.package-data]
-arborito_sdk = ["data/nostr_spec.json"]
+arborito_sdk = ["data/nostr_spec.json", "data/maintainer-nostr-tree-blocklist.json"]
 
 [tool.setuptools.packages.find]
 where = ["."]

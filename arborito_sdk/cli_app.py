@@ -779,10 +779,28 @@ def cmd_go(
 @cli.command("search")
 @click.argument("query")
 @_source_opts
-@click.option("-c", "--content", is_flag=True)
+@click.option("-c", "--content", is_flag=True, help="Search lesson bodies (in-course).")
+@click.option(
+    "--courses",
+    "courses",
+    is_flag=True,
+    help="Search the public course directory (Nostr). Does not need a loaded course.",
+)
+@click.option("--limit", default=30, show_default=True, type=click.IntRange(1, 120))
 @pass_session
-def cmd_search(sess, query, arborito, code, relays, lang, as_json, content) -> None:
-    """🔍 Search nodes (add ``-c`` to search lesson bodies)."""
+def cmd_search(sess, query, arborito, code, relays, lang, as_json, content, courses, limit) -> None:
+    """🔍 Search nodes in the open course, or ``--courses`` for the public directory."""
+    if courses:
+        from .cli_ops import run_search_courses
+
+        run_search_courses(
+            sess,
+            query,
+            relays=_effective_relays(sess, relays),
+            limit=limit,
+            as_json=as_json,
+        )
+        return
     if lang:
         sess.lang = lang.upper()
     api, _ = _resolve_source(sess, arborito, code, relays)

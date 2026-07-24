@@ -39,6 +39,9 @@ Without `[tui]`, `edit` falls back to a simple numbered block menu + Click promp
 | `go 2` | Child #2 from `list` |
 | `go back` / `go where` | Undo / breadcrumb |
 | `go "name"` | Node with literal name |
+| `search QUERY` | Search nodes in the open course (`-c` includes lesson bodies) |
+| `search --courses QUERY` | Search the public course directory (Nostr); skips maintainer-blocked trees |
+
 
 ## Library (branches and trees)
 
@@ -108,4 +111,4 @@ cd arborito-sdk && pip install -e ".[dev]" && python -m unittest discover -s tes
 
 ## Out of scope for the CLI
 
-Embedded Arcade play, forum, votes, certificates, TTS. Publish ships the course bundle and share code; global directory listing and delist are not in this CLI. YAML narrative modules: use `read` / `quiz`, or `api.narrative` in Python.
+Embedded Arcade play, forum, votes, certificates, TTS. Directory delist is not in this CLI (use Arborito). YAML narrative modules: use `read` / `quiz`, or `api.narrative` in Python.

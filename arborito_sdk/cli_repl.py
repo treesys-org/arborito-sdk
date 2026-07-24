@@ -107,6 +107,8 @@ def _parse_flags(argv: list[str]) -> tuple[list[str], dict[str, Any]]:
             flags["partial"] = True
         elif tok in ("-c", "--content"):
             flags["content"] = True
+        elif tok in ("--courses",):
+            flags["courses"] = True
         elif tok == "--modules":
             flags["modules_only"] = True
         elif tok == "--lessons":
@@ -316,7 +318,12 @@ def _dispatch(sess: CliSession, ctx: dict[str, Any], line: str) -> bool:
         rest, flags = _parse_flags(parts[1:])
         query = " ".join(rest).strip()
         if not query:
-            click.echo("Usage: search QUERY [-c]", err=True)
+            click.echo("Usage: search QUERY [-c] | search --courses QUERY", err=True)
+            return True
+        if flags.get("courses"):
+            from .cli_ops import run_search_courses
+
+            run_search_courses(sess, query, relays=list(ctx.get("relays") or ()))
             return True
         run_search(sess, api, query, in_content=bool(flags.get("content")))
         return True
