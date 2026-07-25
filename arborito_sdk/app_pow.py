@@ -8,6 +8,7 @@ from typing import Final
 APP_POW_BITS: Final[dict[str, int]] = {
     "tree_usage_v1": 16,
     "tree_vote_v1": 18,
+    "game_vote_v1": 18,
     "tree_fork_v1": 18,
     "tree_report_v1": 20,
     "tree_urgent_user_message_v1": 20,
