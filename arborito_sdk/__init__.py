@@ -6,7 +6,7 @@ games. Use this package for terminal tools, Pygame, desktop apps, bots, etc.
 Install: ``pip install arborito-sdk``  CLI: ``arborito-cli``  Import: ``arborito_sdk``
 """
 
-__version__ = "0.2.3"
+__version__ = "0.2.4"
 
 from .archive import load_arborito_archive, load_arborito_course
 from .client import Arborito, User, attach_helpers

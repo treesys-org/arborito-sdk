@@ -4,7 +4,7 @@ Build **Pygame games, bots, kiosks, validators, and offline trainers** from any 
 
 > **arborito-games** is only the HTML Arcade catalog (like Flathub). **This repo** is for Python and native apps.
 
-**Version:** 0.2.3
+**Version:** 0.2.4
 
 ## Naming: camelCase vs snake_case
 

@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.2.4 (2026-07-26)
+
+- **`matchPairs` / static pairs:** multi-item Quiz V2 blocks inherit the parent concept and yield one unique term↔definition face per item (question→answer when present), so Memory-style boards get more distinct pairs from a single lesson.
+
 ## 0.2.3 (2026-07-25)
 
 - **CLI** `search --courses QUERY`: search the public Arborito course directory on Nostr relays. Results skip trees on the maintainer blocklist (embedded copy plus live refresh from GitHub `treesys-org/arborito`).

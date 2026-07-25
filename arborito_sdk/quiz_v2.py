@@ -723,14 +723,30 @@ def expand_challenge(challenge: dict[str, Any], base_id: str = "quiz") -> list[d
     c = _normalize_challenge(challenge)
     items = c.get("items") or []
     if items:
+        parent_concept = str(c.get("core_concept") or "").strip()
+        parent_def = str(c.get("short_definition") or "").strip()
         out: list[dict[str, Any]] = []
         for i, item in enumerate(items):
             ni = _normalize_challenge(item)
+            if parent_concept and not str(ni.get("core_concept") or "").strip():
+                ni["core_concept"] = parent_concept
+            if parent_def and not str(ni.get("short_definition") or "").strip():
+                ni["short_definition"] = parent_def
             ni["id"] = f"{base_id}:{i}"
             out.append(ni)
         return out
     c["id"] = base_id
     return [c]
+
+
+def _compact_memory_face(s: str, max_len: int = 56) -> str:
+    t = " ".join(str(s or "").split()).strip()
+    t = re.sub(r"^[¿¡\s]+", "", t)
+    t = re.sub(r"[?!.…]+$", "", t).strip()
+    if len(t) > max_len:
+        cut = t[: max_len - 1].rsplit(" ", 1)[0].strip()
+        t = (cut or t[: max_len - 1].strip()) + "…"
+    return t
 
 
 def parse_all_challenges_from_content(content: str) -> list[dict[str, Any]]:
@@ -1070,10 +1086,25 @@ def static_match_pairs_from_challenge(challenge: dict[str, Any], max_pairs: int)
     concept = str(challenge.get("core_concept") or "").strip()
     defn = str(challenge.get("short_definition") or "").strip()
     correct = str(challenge.get("correct_answer") or "").strip()
-    topic_def = defn or correct
+    question = str(challenge.get("main_question") or "").strip()
     out: list[dict[str, str]] = []
-    if concept and topic_def:
-        out.append({"t": concept[:48], "d": topic_def[:72]})
+    if question and correct:
+        term = _compact_memory_face(question, 56)
+        if not term and concept:
+            term = _compact_memory_face(concept, 48)
+        ans = _compact_memory_face(correct, 72) or correct
+        if term and ans and term.lower() != ans.lower():
+            out.append({"t": term[:48], "d": ans[:72]})
+    topic_def = defn or correct
+    if concept and topic_def and concept.lower() != topic_def.lower():
+        pair = {
+            "t": (_compact_memory_face(concept, 48) or concept)[:48],
+            "d": (_compact_memory_face(topic_def, 72) or topic_def)[:72],
+        }
+        if not out or (
+            pair["t"].lower() != out[0]["t"].lower() and pair["d"].lower() != out[0]["d"].lower()
+        ):
+            out.append(pair)
     steps = challenge.get("steps") or []
     for i in range(len(steps) - 1):
         out.append({"t": str(steps[i])[:48], "d": str(steps[i + 1])[:72]})
@@ -1092,7 +1123,9 @@ def static_match_pairs_from_lessons(lessons: list[dict[str, Any]], count: int) -
     out: list[dict[str, str]] = []
     seen: set[str] = set()
     for lesson in lessons:
-        for c in get_challenges_from_lesson(lesson):
+        challenges = list(get_challenges_from_lesson(lesson))
+        random.shuffle(challenges)
+        for c in challenges:
             for pair in static_match_pairs_from_challenge(c, n):
                 kt = pair["t"].lower()
                 kd = pair["d"].lower()
