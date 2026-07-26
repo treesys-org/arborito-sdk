@@ -40,6 +40,7 @@
   "d_tags": {
     "bundleHeaderDTag": "arborito:bundle:hdr:{ownerPubHex}:{universeId}",
     "bundleMainChunkDTag": "arborito:bundle:main:{ownerPubHex}:{universeId}:{index}",
+    "bundleSkeletonDTag": "arborito:bundle:skel:{ownerPubHex}:{universeId}:{gen}",
     "directoryDTag": "arborito:dir:v2:{ownerPubHex}:{universeId}",
     "revokeDTag": "arborito:revoke:{ownerPubHex}:{universeId}",
     "treeCodeDTag": "arborito:code:{normalizedCode}",

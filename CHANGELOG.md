@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.2.5 (2026-07-27)
+
+- Nostr spec: `bundleSkeletonDTag` (`arborito:bundle:skel:…`) for an optional structure-only bundle event (kind 30151). Additive; existing `nostrBundleFormat` 2 trees stay valid. Regenerated `nostr_protocol.py` helpers.
+
 ## 0.2.4 (2026-07-26)
 
 - **`matchPairs` / static pairs:** multi-item Quiz V2 blocks inherit the parent concept and yield one unique term↔definition face per item (question→answer when present), so Memory-style boards get more distinct pairs from a single lesson.

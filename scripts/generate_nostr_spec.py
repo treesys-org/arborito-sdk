@@ -96,6 +96,11 @@ def arb_root_tag(owner_pub_hex: str, universe_id: str) -> list[str]:
     py_funcs = [
         ("bundle_header_d_tag", "owner_pub_hex, universe_id", 'f"arborito:bundle:hdr:{owner_pub_hex}:{universe_id}"'),
         ("bundle_main_chunk_d_tag", "owner_pub_hex, universe_id, index", 'f"arborito:bundle:main:{owner_pub_hex}:{universe_id}:{int(index)}"'),
+        (
+            "bundle_skeleton_d_tag",
+            "owner_pub_hex, universe_id, gen",
+            'f"arborito:bundle:skel:{owner_pub_hex}:{universe_id}:{gen}"',
+        ),
         ("directory_d_tag", "owner_pub_hex, universe_id", 'f"arborito:dir:v2:{owner_pub_hex}:{universe_id}"'),
         ("revoke_d_tag", "owner_pub_hex, universe_id", 'f"arborito:revoke:{owner_pub_hex}:{universe_id}"'),
         ("tree_code_d_tag", "code", 'f"arborito:code:{code}"'),
@@ -200,6 +205,11 @@ def _emit_js(spec: dict) -> str:
         ("arbRootTag", "ownerPubHex, universeId", "[TAG_ARB_ROOT, 'root', String(ownerPubHex || ''), String(universeId || '')]"),
         ("bundleHeaderDTag", "ownerPubHex, universeId", "`arborito:bundle:hdr:${String(ownerPubHex)}:${String(universeId)}`"),
         ("bundleMainChunkDTag", "ownerPubHex, universeId, index", "`arborito:bundle:main:${String(ownerPubHex)}:${String(universeId)}:${Number(index)}`"),
+        (
+            "bundleSkeletonDTag",
+            "ownerPubHex, universeId, gen",
+            "`arborito:bundle:skel:${String(ownerPubHex)}:${String(universeId)}:${String(gen || '')}`",
+        ),
         ("directoryDTag", "ownerPubHex, universeId", "`arborito:dir:v2:${String(ownerPubHex)}:${String(universeId)}`"),
         ("revokeDTag", "ownerPubHex, universeId", "`arborito:revoke:${String(ownerPubHex)}:${String(universeId)}`"),
         ("treeCodeDTag", "normalizedCode", "`arborito:code:${String(normalizedCode)}`"),

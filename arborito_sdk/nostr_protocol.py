@@ -74,6 +74,9 @@ def bundle_header_d_tag(owner_pub_hex, universe_id) -> str:
 def bundle_main_chunk_d_tag(owner_pub_hex, universe_id, index) -> str:
     return f"arborito:bundle:main:{owner_pub_hex}:{universe_id}:{int(index)}"
 
+def bundle_skeleton_d_tag(owner_pub_hex, universe_id, gen) -> str:
+    return f"arborito:bundle:skel:{owner_pub_hex}:{universe_id}:{gen}"
+
 def directory_d_tag(owner_pub_hex, universe_id) -> str:
     return f"arborito:dir:v2:{owner_pub_hex}:{universe_id}"
 

@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "arborito-sdk"
-version = "0.2.4"
+version = "0.2.5"
 description = "Python SDK for Arborito courses: load .arborito archives and Quiz V2 challenges. Not the browser Arcade SDK (window.arborito)."
 readme = "README.md"
 requires-python = ">=3.10"
