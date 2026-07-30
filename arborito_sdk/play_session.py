@@ -1,4 +1,4 @@
-"""Lesson-grounded AI prompts for dynamic mode (`ask.lesson_action`)."""
+"""AI prompts for dynamic mode: scene (`speak`/`reply`) and study (`tutor`/`lesson_action`)."""
 
 from __future__ import annotations
 
@@ -296,3 +296,159 @@ def grade_quiz_answer_prompt(
         "Accept synonyms and minor spelling errors grounded in the lesson.\n"
         'Output JSON only: {"correct": true|false}'
     )
+
+
+# ── Scene helpers (no curriculum / quiz pollution) ─────────────────────
+
+COURSE_TOPICS: dict[str, tuple[str, ...]] = {
+    "greeting": (
+        "hello", "hi", "greeting", "saludo", "name", "nombre", "good morning",
+        "good evening", "how are", "my name", "je m'appelle", "bonjour", "hallo",
+    ),
+    "origin": (
+        "from", "where are you from", "country", "origen", "live", "come from",
+        "d'où", "woher", "de dónde", "soy de",
+    ),
+    "purpose": (
+        "purpose", "visit", "why are you", "business", "tourist", "motivo",
+        "propósito", "stay", "holiday", "vacation", "reason",
+    ),
+    "goodbye": (
+        "goodbye", "good night", "goodnight", "bye", "adios", "adiós",
+        "despedida", "see you", "au revoir", "tschüss",
+    ),
+}
+
+
+def build_speak_prompt(who: str, text: str, *, speak_lang: str = "") -> str:
+    """Paraphrase an authored line as in-character speech. No course block."""
+    who = str(who or "Character").strip()
+    text = str(text or "").strip()
+    lang_line = f"Speak in {speak_lang}.\n" if speak_lang else ""
+    return (
+        "You write ONE spoken line for a character in a game.\n"
+        f"Who is speaking: {who}\n"
+        f"{lang_line}"
+        "They must say this idea in fresh words (same meaning, do not invent new plot):\n"
+        f"«{text}»\n"
+        "Rules:\n"
+        "- Output 1–2 short spoken sentences only.\n"
+        "- Never talk about lessons, vocabulary, quizzes, practice, or studying.\n"
+        "- No stage directions.\n"
+        'Reply ONLY with JSON: {"line":"the spoken line"}'
+    )
+
+
+def build_reply_prompt(
+    who: str,
+    player_said: str,
+    facts: list[str] | None = None,
+    *,
+    speak_lang: str = "",
+) -> str:
+    """Character answers the player using only provided facts. No course block."""
+    who = str(who or "Character").strip()
+    player_said = str(player_said or "").strip()
+    fact_lines = "\n".join(f"- {f}" for f in (facts or []) if str(f).strip())
+    facts_block = (
+        f"Facts this character may use (do not invent others):\n{fact_lines}\n"
+        if fact_lines
+        else "Use only what the who-line implies; invent no new plot.\n"
+    )
+    lang_line = f"Speak in {speak_lang}.\n" if speak_lang else ""
+    return (
+        "You roleplay a character in a game. Write their next spoken reply.\n"
+        f"Who is speaking: {who}\n"
+        f"{lang_line}"
+        f"{facts_block}"
+        f"The player just said: «{player_said}»\n"
+        "Rules:\n"
+        "- 1–2 short spoken sentences.\n"
+        "- Never quote the player word-for-word.\n"
+        "- Never talk about lessons, vocabulary, quizzes, or practice.\n"
+        'Reply ONLY with JSON: {"line":"the spoken line"}'
+    )
+
+
+def build_check_judge_prompt(player_said: str, card: dict[str, Any]) -> str:
+    """Yes/no judge for an open answer against a fromCourse card."""
+    q = str(card.get("question") or "").strip()
+    accept = card.get("accept") or []
+    accept_s = ", ".join(str(a) for a in accept[:12] if a)
+    example = str(card.get("example") or "").strip()
+    return (
+        "Grade a short language-learning answer.\n"
+        f"Question asked: «{q}»\n"
+        f"Acceptable patterns from the course: {accept_s or '(none listed)'}\n"
+        + (f"Example answer: «{example}»\n" if example else "")
+        + f"Player wrote: «{str(player_said)[:200]}»\n"
+        "Accept simple grammar mistakes if the meaning matches. "
+        "Reject wrong language or off-topic answers.\n"
+        'Reply ONLY with JSON: {"ok": true} or {"ok": false}'
+    )
+
+
+def score_topic_blob(topic: str, blob: str) -> int:
+    keys = COURSE_TOPICS.get(str(topic or "").lower().strip()) or ()
+    low = f" {str(blob or '').lower()} "
+    return sum(1 for k in keys if k in low)
+
+
+def build_course_card_from_playlist(
+    client: Any,
+    topic: str,
+    *,
+    lang: str = "ES",
+) -> dict[str, Any] | None:
+    """Build a speaking card from playlist questionnaires for a fixed topic key."""
+    topic = str(topic or "").lower().strip()
+    if topic not in COURSE_TOPICS:
+        return None
+    from .quiz_v2 import get_challenges_from_lesson, static_quiz_from_lesson
+
+    playlist = list(getattr(client, "_playlist", None) or [])
+    scored: list[tuple[int, dict[str, str], str]] = []
+    for lesson in playlist:
+        title = str(lesson.get("title") or "")
+        for item in static_quiz_from_lesson(lesson, 6, lang) or []:
+            blob = f"{title} {item.get('topic')} {item.get('q')} {item.get('correct')}"
+            sc = score_topic_blob(topic, blob)
+            if sc:
+                scored.append((sc, item, title))
+        for ch in get_challenges_from_lesson(lesson)[:8]:
+            blob = (
+                f"{title} {ch.get('main_question')} {ch.get('correct_answer')} "
+                f"{ch.get('core_concept')} {ch.get('short_definition')}"
+            )
+            sc = score_topic_blob(topic, blob)
+            if sc:
+                item = {
+                    "q": str(ch.get("main_question") or ch.get("core_concept") or "").strip(),
+                    "correct": str(ch.get("correct_answer") or "").strip(),
+                    "topic": str(ch.get("core_concept") or topic),
+                }
+                if item["q"] or item["correct"]:
+                    scored.append((sc, item, title))
+    if not scored:
+        return None
+    scored.sort(key=lambda x: -x[0])
+    best = scored[0][1]
+    accept: list[str] = []
+    for _sc, item, _title in scored[:8]:
+        for cand in (item.get("correct"), item.get("q")):
+            c = str(cand or "").strip()
+            if c and c not in accept and len(c) < 80:
+                accept.append(c)
+    question = str(best.get("q") or "").strip()
+    example = str(best.get("correct") or (accept[0] if accept else "")).strip()
+    if not question and example:
+        # Fallback: use a short prompt built from topic label only if we have answers
+        question = example
+    if not question and not accept:
+        return None
+    return {
+        "topic": topic,
+        "question": question,
+        "accept": accept,
+        "example": example,
+    }

@@ -197,19 +197,23 @@ cd arborito-sdk && pip install -e ".[dev,nostr]" && python -m unittest discover 
 # Static quiz (no AI server)
 python examples/minimal_quiz.py path/to/course.arborito EN
 
-# AI tutor (needs llama.cpp on LLAMA_CPP_HOST or port 8080/8765)
+# Scene + course speaking gate (needs llama.cpp)
+python examples/ai_scene.py path/to/course.arborito EN
+
+# Study tutor (needs llama.cpp)
 python examples/ai_tutor.py path/to/course.arborito EN
 ```
 
-### AI in three lines
+### Dynamic scene in a few lines
 
 ```python
-profile = api.lesson.branch_profile(lesson)
-res = api.ask.lesson_action(lesson, player_said, {"persona": "Guide", "profile": profile})
-print(res["output"])
+print(api.ask.speak("Mike, strict boss", "Julius is missing. Hotel Pentfive.")["line"])
+print(api.ask.reply("Mike. Wants accept.", player_said, ["Julius disappeared"])["line"])
+card = api.ask.from_course("greeting")
+ok = api.ask.check(player_said, card)["ok"]
 ```
 
-See `examples/ai_tutor.py` for a full REPL.
+Study tutor: `api.ask.tutor(lesson, player_said, {"persona": "Guide"})` (alias: `lesson_action`).
 
 ## Contributing
 

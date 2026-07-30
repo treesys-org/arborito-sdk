@@ -24,7 +24,11 @@ from .errors import (
 from .json_extract import parse_json_from_model_output
 from .play_session import (
     branch_context_for_ai,
+    build_check_judge_prompt,
+    build_course_card_from_playlist,
     build_dynamic_action_prompt,
+    build_reply_prompt,
+    build_speak_prompt,
     lesson_action_prompt,
 )
 from .quiz_v2 import (
@@ -578,17 +582,18 @@ class Arborito:
             ) -> str:
                 author_line = str(beat or "").strip()
                 player_said = str(text or "").strip()
-                opts: dict[str, Any] = {
-                    "persona": str(npc.get("system_prompt") or npc.get("name") or "NPC"),
-                }
-                if author_line:
-                    opts["authorLine"] = author_line
-                if mode == "adapt" and author_line:
-                    player_said = author_line
+                who = str(npc.get("system_prompt") or npc.get("name") or "NPC")
                 try:
-                    out = self.ask.lesson_action(lesson, player_said, opts)
-                    if isinstance(out, dict) and out.get("output"):
-                        return str(out["output"])
+                    if mode == "adapt" and author_line:
+                        out = self.ask.speak(who, author_line)
+                    elif player_said:
+                        out = self.ask.reply(who, player_said, [])
+                    elif author_line:
+                        out = self.ask.speak(who, author_line)
+                    else:
+                        out = {}
+                    if isinstance(out, dict) and out.get("line"):
+                        return str(out["line"])
                 except Exception:
                     pass
                 return author_line or player_said or str(npc.get("name") or "…")
@@ -1183,6 +1188,83 @@ class _AskNS:
         return self.json(prompt)
 
     lessonAction = lesson_action  # Arcade camelCase alias
+    tutor = lesson_action  # Easy name: study chat grounded in the course
+
+    def from_course(self, topic: str) -> Optional[dict[str, Any]]:
+        """Speaking card from the loaded course questionnaires (`greeting`, `origin`, …)."""
+        lang = str(getattr(self._c.user, "lang", None) or "ES")
+        return build_course_card_from_playlist(self._c, topic, lang=lang)
+
+    fromCourse = from_course
+
+    def speak(self, who: str, text: str, *, lang: str = "") -> dict[str, str]:
+        """Paraphrase an authored line as in-character speech (no course quizzes in the prompt)."""
+        seed = str(text or "").strip()
+        if not seed:
+            raise ArboritoError(AI_EMPTY_RESPONSE, "ask.speak: empty text.")
+        if self._c.getAIMode() == "static":
+            return {"line": seed}
+        prompt = build_speak_prompt(who, seed, speak_lang=lang)
+        try:
+            res = self.json(prompt, max_attempts=2)
+            line = str((res or {}).get("line") or (res or {}).get("output") or "").strip()
+            if line:
+                return {"line": line}
+        except Exception:
+            pass
+        return {"line": seed}
+
+    def reply(
+        self,
+        who: str,
+        player_said: str,
+        facts: Optional[list[str]] = None,
+        *,
+        lang: str = "",
+    ) -> dict[str, str]:
+        """Character answers the player using only `facts` (no course quizzes in the prompt)."""
+        said = str(player_said or "").strip()
+        if not said:
+            raise ArboritoError(AI_EMPTY_RESPONSE, "ask.reply: empty player text.")
+        fact_list = [str(f).strip() for f in (facts or []) if str(f).strip()]
+        if self._c.getAIMode() == "static":
+            tip = fact_list[0] if fact_list else "…"
+            return {"line": tip}
+        prompt = build_reply_prompt(who, said, fact_list, speak_lang=lang)
+        try:
+            res = self.json(prompt, max_attempts=2)
+            line = str((res or {}).get("line") or (res or {}).get("output") or "").strip()
+            if line:
+                return {"line": line}
+        except Exception:
+            pass
+        return {"line": fact_list[0] if fact_list else "…"}
+
+    def check(self, player_said: str, card: Optional[dict[str, Any]]) -> dict[str, Any]:
+        """Grade an answer against a fromCourse card (local match, then optional AI judge)."""
+        text = str(player_said or "").strip()
+        card = dict(card or {})
+        accept = [str(a).strip() for a in (card.get("accept") or []) if str(a).strip()]
+        example = str(card.get("example") or "").strip()
+        if example and example not in accept:
+            accept.append(example)
+        matched = ""
+        ok = False
+        if accept:
+            ok_m, matched = matches_any_answer(text, accept)
+            ok = bool(ok_m)
+        if ok:
+            return {"ok": True, "matched": matched, "tip": example or matched}
+        if self._c.getAIMode() == "dynamic" and card.get("question"):
+            try:
+                res = self.json(build_check_judge_prompt(text, card), max_attempts=1)
+                if isinstance(res, dict) and res.get("ok") is True:
+                    return {"ok": True, "matched": matched or text, "tip": example}
+            except Exception:
+                pass
+        tip = example or (accept[0] if accept else "")
+        return {"ok": False, "matched": matched, "tip": tip}
+
 
     def with_context(
         self,
@@ -1231,7 +1313,7 @@ class _AskNS:
         mode: str = "reply",
         lesson: Optional[dict[str, Any]] = None,
     ) -> str:
-        """Narrative reply helper. Prefer ask.lesson_action with authorLine for new code."""
+        """Narrative reply helper. Prefer ask.speak / ask.reply for new scene code."""
         persona = str(npc.get("system_prompt") or npc.get("name") or "NPC")
         name = str(npc.get("name") or "NPC")
         author_line = str(beat or "").strip()
