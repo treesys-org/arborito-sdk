@@ -1188,7 +1188,7 @@ class _AskNS:
         return self.json(prompt)
 
     lessonAction = lesson_action  # Arcade camelCase alias
-    tutor = lesson_action  # Easy name: study chat grounded in the course
+    tutor = lesson_action  # Friendly name: study chat grounded in the course
 
     def from_course(self, topic: str) -> Optional[dict[str, Any]]:
         """Speaking card from the loaded course questionnaires (`greeting`, `origin`, …)."""

@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.2.6 (2026-07-31)
+
+- **Scene AI (dynamic mode):** `ask.from_course` / `fromCourse`, `ask.speak`, `ask.reply`, `ask.check`, and `ask.tutor` (aliases `lesson_action` / `lessonAction`). Narrative adapt uses `speak` / `reply` so story NPCs stay off the study questionnaire path.
+- **Docs:** README and sdk-spec list CLI commands plus a full static / dynamic mode / advanced API table; example `examples/ai_scene.py`.
+
 ## 0.2.5 (2026-07-27)
 
 - Nostr spec: `bundleSkeletonDTag` (`arborito:bundle:skel:…`) for an optional structure-only bundle event (kind 30151). Additive; existing `nostrBundleFormat` 2 trees stay valid. Regenerated `nostr_protocol.py` helpers.

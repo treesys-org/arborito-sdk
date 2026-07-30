@@ -4,13 +4,13 @@ Build **Pygame games, bots, kiosks, validators, and offline trainers** from any 
 
 > **arborito-games** is only the HTML Arcade catalog (like Flathub). **This repo** is for Python and native apps.
 
-**Version:** 0.2.4
+**Version:** 0.2.6
 
 ## Naming: camelCase vs snake_case
 
 The browser injects `window.arborito` with **camelCase** methods (`fromLesson`, `buildCard`, `tasksFromLesson`). The Python SDK keeps those same names on the Arcade surface so a cartridge and a Pygame game share one vocabulary.
 
-Python-only helpers use **snake_case** (`grade_answer`, `matches_any`, `branch_profile`, `lesson_action`). CamelCase aliases exist where useful (`gradeAnswer`, `matchesAny`, `branchProfile`, `lessonAction`, `plainText` / `plain_text`).
+Python-only helpers use **snake_case** (`grade_answer`, `matches_any`, `branch_profile`, `from_course`). CamelCase aliases exist where useful (`gradeAnswer`, `matchesAny`, `branchProfile`, `fromCourse`, `lessonAction`, `plainText` / `plain_text`).
 
 ## Install
 
@@ -32,6 +32,8 @@ list → go → read | edit | quiz | ask
 
 **Library:** `branch` (full courses) and `tree` (composed playlists).
 
+**Python games:** use **static** quiz helpers without an AI server; use **dynamic mode** for `ask.speak` / `reply` / scene gates. **Advanced** is only when you write the prompt yourself.
+
 ## CLI commands
 
 Run `arborito-cli`.
@@ -39,19 +41,21 @@ Run `arborito-cli`.
 
 | Area | Commands |
 |------|----------|
-| Interactive | `shell` or `arborito-cli course.arborito` (REPL) |
-| Navigate | `list`, `go N`, `go back`, `go where`, `go "name"` |
-| Lesson | `read` (enriched), `edit` (TUI / F2 Quiz), `edit --raw`, `games` |
+| Interactive | `shell` or `arborito-cli course.arborito` (REPL); `help`; `exit` / `quit` |
+| Navigate | `list`, `go N`, `go back`, `go where`, `go "name"` (`back` / `where` shortcuts) |
+| Lesson | `read` (enriched), `edit` (TUI / F2 Quiz), `edit --raw`, `games`, `info` |
 | Study | `quiz`, `ask` |
-| Course | `info`, `search` |
-| Branches | `branch list`, `branch add CODE`, `branch open "Name"`, `branch import`, `branch new`, `branch publish`, `branch export`, `branch remove` |
+| Search | `search QUERY`, `search --courses QUERY` |
+| Branches | `branch list`, `branch add CODE`, `branch open "Name"`, `branch import`, `branch new`, `branch publish`, `branch export`, `branch remove` (alias: `forest` / `bosque`) |
 | Trees | `tree list`, `tree open "Name"`, `tree import`, `tree export`, `tree remove` |
 | Copy | `cp branch "Name"` / `cp tree "Name"` |
+| Favorites | `fav list`, `fav add`, `fav remove` |
 | Account | `session register`, `session login`, `session logout`, `session whoami` |
-| Memory | `memory due`, `memory report` |
-| Config | `config relay …`, `config ai …` |
+| Memory | `memory due`, `memory report` (Care pull/push runs automatically when logged in) |
+| Config | `config relay list\|set\|reset`, `config ai list\|set …` |
+| Scripts | `script` / `run` / `batch` |
 
-Network: only share codes `XXXX-XXXX` or local `.arborito` files, no manual `nostr://` URLs. Sync and refresh run automatically when loading from the network.
+Network: only share codes `XXXX-XXXX` or local `.arborito` files, no manual `nostr://` URLs. Sync and refresh run automatically when loading from the network. Full keys: [CLI.md](https://github.com/treesys-org/arborito-sdk/blob/main/CLI.md).
 
 ## Quick start
 
@@ -125,7 +129,35 @@ Second root section.
 - Normal `##` / `###` without a path are content titles once the lesson already has `index:` rows.
 - Titles may repeat; indexes stay unique after `prepare_construct_outline_body`.
 
-## The API every game needs
+## API surface (static vs dynamic mode)
+
+Same contract as browser Arcade (`window.arborito`). **Static** needs no AI server. **Dynamic mode** needs local llama.cpp (`ai_mode="dynamic"`). Prefer the scene helpers in dynamic mode; open **advanced** only when you own the prompt.
+
+### All Python API commands
+
+| Mode | Call | Role |
+|------|------|------|
+| Dynamic | `ask.fromCourse(topic)` / `from_course` | Practice card from the open course (`greeting`, `origin`, `purpose`, `goodbye`) |
+| Dynamic | `ask.speak(who, text)` | Paraphrase an authored line (no course quizzes in the prompt) |
+| Dynamic | `ask.reply(who, playerSaid, facts)` | NPC answers using only `facts` |
+| Dynamic | `ask.check(playerSaid, card)` | Grade against a `fromCourse` card (local match, then optional AI judge; local match also works static) |
+| Dynamic | `ask.tutor(lesson, text, opts?)` | Study chat grounded in course questionnaires (aliases: `lesson_action`, `lessonAction`) |
+| Static | `lesson.at` / `by_id` / `byId` / `plainText` | Load lesson prose for HUD / NPC |
+| Static | `lesson.context_for_ai` / `branch_profile` | Lesson / branch text for prompts |
+| Static | `challenge.fromLesson` → `modes.buildCard` | Static challenge cards |
+| Static | `challenge.tasksFromLesson` | Mission list from questionnaires |
+| Static | `quiz` / `matchPairs` | Classroom Q/A and Memory pairs |
+| Static | `quiz.matches_any` / `matchesAny` | Local answer match |
+| Static | `quiz.grade_answer` / `gradeAnswer` | Grade (local; LLM only in dynamic mode) |
+| Static | `quiz.pick` / `find_code_replay` | Pick pool item / code replay |
+| Static | `memory.due` / `report` / `isDue` / `getStatus` | Care / SM-2 local |
+| Both | `memory.pull` / `push` / `sync` | Care sync with Arborito (needs `[nostr]` + login) |
+| Advanced | `ask.json(prompt)` | Raw JSON from your prompt |
+| Advanced | `ask.chat(messages)` | Raw chat turn |
+| Advanced | `ask.with_context(query)` | Short answer grounded in indexed course context |
+| Advanced | `ask.npc(...)` | Legacy narrative helper — prefer `speak` / `reply` for new scene code |
+| Advanced | `narrative.start` / `advance` | YAML scene runner (programmatic; no CLI command) |
+| Advanced | `ai.persona` / `ai.arborito` | Tutor voice strings |
 
 ```
 lesson → challenge → your UI → memory (optional)
@@ -152,11 +184,9 @@ api.memory.report(lesson["id"], quality=4)
 api.memory.push()  # or api.memory.sync() = pull+push
 ```
 
-Requires `pip install 'arborito-sdk[nostr]'`. CLI: `session login` then `memory pull|push|sync`.
+Requires `pip install 'arborito-sdk[nostr]'`. CLI: `session login` (Care syncs automatically while logged in).
 
-Optional: `ask.lesson_action(...)` (local LLM + branch context), `ask.json(...)` (your own prompt), `api.narrative.start()` (programmatic only, no CLI narrative command).
-
-### Quiz helpers
+### Quiz helpers (detail)
 
 ```python
 lesson = api.lesson.by_id(pool_item["lessonId"])
@@ -177,6 +207,7 @@ In **static mode**, `grade_answer` only uses local matching (no LLM). Browser ca
 | `Arborito.from_arborito(path)` | Local export (recommended) |
 | `Arborito.from_share_code("ABCD-EF23")` | Public share code |
 | `Arborito.from_nostr(pub, universe_id)` | Direct Nostr reference |
+| `Arborito.from_library(...)` / `from_static_data(...)` | Library / in-memory trees |
 
 ## Docs
 
