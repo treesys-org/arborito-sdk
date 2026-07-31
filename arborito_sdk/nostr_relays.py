@@ -9,11 +9,11 @@ from typing import Iterable
 
 # Mirrors `SUGGESTED_NOSTR_RELAYS` in arborito/src/features/nostr/api/nostr-relays-runtime.js
 DEFAULT_NOSTR_RELAYS: tuple[str, ...] = (
-    "wss://relay.tchncs.de",
-    "wss://nostr.einundzwanzig.space",
-    "wss://purplepag.es",
     "wss://nos.lol",
+    "wss://nostr.mom",
     "wss://relay.primal.net",
+    "wss://relay.ditto.pub",
+    "wss://relay.nostr.net",
 )
 
 

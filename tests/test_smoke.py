@@ -51,7 +51,9 @@ def test_share_code_normalize():
 def test_default_relays_match_arborito():
     from arborito_sdk.nostr_relays import DEFAULT_NOSTR_RELAYS
 
-    assert "wss://relay.tchncs.de" in DEFAULT_NOSTR_RELAYS
+    assert "wss://nos.lol" in DEFAULT_NOSTR_RELAYS
+    assert "wss://relay.primal.net" in DEFAULT_NOSTR_RELAYS
+    assert "wss://relay.ditto.pub" in DEFAULT_NOSTR_RELAYS
     assert len(DEFAULT_NOSTR_RELAYS) >= 5
 
 
